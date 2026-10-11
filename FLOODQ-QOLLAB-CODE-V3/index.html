@@ -1,0 +1,102 @@
+<!--
+  FloodQ Florida: the page Qollab runs. Qollab puts this file inside its page body, loads
+  main.css and runs main.js, which holds all of the page's JavaScript and imports the Python
+  engine (script tags here would not run there, so there are none).
+-->
+<div id="fq-nofiles" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;background:#030812;color:#e4edff;font:16px/1.55 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;">
+  <div style="max-width:520px">
+    <div style="font-size:30px;font-weight:800;margin-bottom:12px">FloodQ Florida</div>
+    <p style="margin:0 0 12px">This file is the page Qollab runs. It cannot open on its own.</p>
+    <p style="margin:0">Open the project on Qollab and press <b>Run Project</b>.</p>
+  </div>
+</div>
+
+<div id="fq-app" class="fq">
+
+  <!-- top bar: the name, the search, the action, the sound -->
+  <header class="fq-top">
+    <div class="fq-brand">
+      <span class="fq-logo" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="fq-name">Flood<b>Q</b> Florida</div>
+    </div>
+    <form class="fq-ask" id="ask" autocomplete="off">
+      <label class="fq-search">
+        <svg class="fq-search-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"></circle><path d="M12.6 12.6 17 17"></path></svg>
+        <input id="you-search" list="city-list" type="search" placeholder="Enter or select your location" aria-label="Your location">
+        <datalist id="city-list"></datalist>
+      </label>
+      <button type="button" class="fq-btn-main" id="btn-find" disabled>Loading&hellip;</button>
+    </form>
+    <div class="fq-sound" id="sound-box">
+      <button type="button" class="fq-icon-btn" id="btn-sound" aria-pressed="true" aria-label="Storm sound and alerts" title="Storm sound and alerts">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path class="spk" d="M3 7.5h3l4-3.5v12l-4-3.5H3z"></path><path class="wave" d="M13 7c1.3 1.6 1.3 4.4 0 6"></path><path class="wave" d="M15.3 5c2.4 2.8 2.4 7.2 0 10"></path><path class="mute" d="M13 7l5 6M18 7l-5 6"></path></svg>
+      </button>
+      <input type="range" id="vol" min="0" max="100" value="70" aria-label="Volume">
+      <label class="fq-voice" title="Spoken alerts: a female and a male voice take turns, or keep one voice, or turn them off">
+        <span>Voice</span>
+        <select id="voice" aria-label="Spoken alerts">
+          <option value="alternate">Female + male</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="off">Off</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <main class="fq-stage">
+    <div id="map" class="fq-map" role="application" aria-label="Map of Florida with the storm, flood zones and evacuation routes. Click a place to plan from there."></div>
+
+    <!-- the storm over time -->
+    <div class="fq-playbar" id="playbar">
+      <button type="button" class="fq-play" id="btn-play" aria-label="Play the storm">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path class="ico-play" d="M6 4l10 6-10 6z"></path><path class="ico-pause" d="M5.5 4h3v12h-3zM11.5 4h3v12h-3z"></path></svg>
+      </button>
+      <div class="fq-clock"><b id="clock-main">H&#8722;48</b><span id="clock-sub">48 h to landfall</span></div>
+      <div class="fq-level" id="level" data-stage="0" title="Danger at the place in focus"><i aria-hidden="true"></i><b id="level-name">Calm</b></div>
+      <div class="fq-track">
+        <canvas id="tl-canvas" aria-hidden="true"></canvas>
+        <input id="tl-range" type="range" min="-48" max="18" step="0.25" value="-48" title="Storm clock" aria-label="Storm clock: hours before or after landfall">
+      </div>
+    </div>
+    <div class="fq-banner" id="banner" role="status" aria-live="polite" hidden>
+      <div class="fq-banner-k" id="banner-kicker"></div>
+      <div class="fq-banner-t" id="banner-title"></div>
+      <div class="fq-banner-s" id="banner-sub"></div>
+    </div>
+    <!-- shown when the storm is off the map: points to it, and a click shows the whole storm -->
+    <button type="button" class="fq-stormptr" id="storm-ptr" hidden title="The storm is off the map. Click to see the whole storm (F)." aria-label="The storm is off the map. Show the whole storm.">
+      <i class="fq-stormptr-arrow" id="storm-ptr-arrow" aria-hidden="true"></i><span id="storm-ptr-text">Storm</span>
+    </button>
+    <button type="button" class="fq-showpanel" id="btn-showpanel" hidden title="Show the panel again (M)">Show panel</button>
+    <div class="fq-key" id="key" aria-label="Map key">
+      <span title="Modeled storm-surge evacuation zone. During playback, colored water shows the depth on land."><i class="k-flood"></i>Flood Zone</span>
+      <span title="Route 1 green, 2 blue, 3 orange, 4 purple, 5 gray"><i class="k-route"></i>Evacuation Route</span>
+      <span><i class="k-safe"></i>Safe Destination</span>
+      <span title="Closed by flooding or high winds, or closing soon after you would pass"><i class="k-road"></i>Closed Road</span>
+    </div>
+
+    <!-- right: what to do, the risk here, where to go -->
+    <aside class="fq-panel" id="panel" aria-label="Location risk and evacuation options">
+      <div class="fq-panel-body" id="panel-body">
+        <div id="results" class="fq-results"></div>
+        <p class="fq-sr" id="say" aria-live="polite"></p>
+        <details class="fq-sect" id="sect-how">
+          <summary>How it works</summary>
+          <div id="tab-how"></div>
+        </details>
+        <p class="fq-disclaimer">A simulation with hypothetical storms and a simplified model, not live data. Always follow official evacuation orders.</p>
+      </div>
+    </aside>
+
+    <div class="fq-loading" id="loading" role="status">
+      <div class="fq-spinner" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div>
+        <strong id="loading-title">Starting FloodQ Florida</strong>
+        <p id="loading-text">On Qollab the first run loads Python and Qiskit into your browser (20 to 60 seconds).</p>
+        <div class="fq-progress"><i id="loading-bar"></i></div>
+      </div>
+    </div>
+    <div class="fq-toast" id="toast" role="status" hidden></div>
+  </main>
+</div>
